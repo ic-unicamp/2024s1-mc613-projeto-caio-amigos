@@ -1,13 +1,11 @@
 # Projeto final de MC613 - 2024s1
 
-Grupo:
+Grupo: Caio & amigos
 
-- RA - Nome
-- RA - Nome
-- RA - Nome
+- 212661 - Caio Raphael Teixeira
+- 260469 - Guilherme Henrique Ferreira da Silva
+- 260558 - Kairé Pereira Giovanetti
 
 ## Descrição
 
-Descrição do projeto.
-
-
+Caio & amigos jogam um pac-man.
