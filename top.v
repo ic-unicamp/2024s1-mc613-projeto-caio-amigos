@@ -417,7 +417,7 @@ always @(posedge game_clk) begin
 	if ((red_x + (red_y * 40) == 594) && (rvx != -1)) begin
 		red_x = 5;
 		red_x = red_x + rvx; red_y = red_y + rvy;
-	end else if ((red_x + (red_y * 40) == 566) && (rvx != 1)) begin
+	end else if ((red_x + (red_y * 40) == 565) && (rvx != 1)) begin
 		red_x = 34;
 		red_x = red_x + rvx; red_y = red_y + rvy;
 	end else begin
@@ -428,7 +428,7 @@ always @(posedge game_clk) begin
 	end
 	mini_mapa[red_x + (red_y * 40)] = 4'b0111;
 	
- 
+
 	waka = ~waka;
 	if(waka) pac_man = pac_man_idl;
 	else begin 
@@ -445,8 +445,6 @@ always @(posedge game_clk) begin
 
 		pac_x = pac_x + vx;
 		pac_y = pac_y + vy;
-		
-		//if(mini_mapa[pac_x + (pac_y * 40)] == 5 ou 6 ou 7 ou 8) => perdeu
 		mini_mapa[pac_x + (pac_y * 40)] = 4;
 	end
 end
