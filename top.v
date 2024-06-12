@@ -13,7 +13,14 @@ module pacman(
 	output VGA_SYNC_N,
 	output VGA_BLANK_N,
 	output VGA_HS,
-	output VGA_VS
+	output VGA_VS,
+	
+	output [6:0] HEX0,
+	output [6:0] HEX1,
+	output [6:0] HEX2,
+	output [6:0] HEX3,
+	output [6:0] HEX4,
+	output [6:0] HEX5
 );
 
 
@@ -35,7 +42,6 @@ frequency_divider fd2(
 
 
 vga driver(.clk(clk),
-.reset(reset),
 .red(red),
 .green(green),
 .blue(blue),
@@ -49,30 +55,29 @@ vga driver(.clk(clk),
 .VGA_HS(VGA_HS),
 .VGA_VS(VGA_VS)
 );
-//
-//
-//frame_buffer fb(
-//.clk(VGA_CLK),
-//.w_enable(w_enable),
-//.data_in(data),
-//.addr0(w_address),
-//.addr1(r_address),
-//.out(out)
-//);
-//
-//
-//
-//wire [2:0] out;
-//reg [14:0] w_address = 0;
-//reg w_enable = 0;
 
+
+display display_atual (.digito0(HEX0),
+                .digito1(HEX1),
+                .digito2(HEX2),
+                .valor(placar_atual) 
+);
+
+display display_maximo (.digito0(HEX3), 
+                .digito1(HEX4),
+                .digito2(HEX5),
+                .valor(maximo) 
+);
+
+reg [9:0] maximo = 0;
+reg [9:0] placar_atual = 0;
+reg [7:0] comidas = 0;
 
 reg [14:0] r_address = 0;
 reg [2:0] mem [0:19199];	
 reg [3:0] mini_mapa [0:1199];
-
-initial $readmemb("/home/ec2022/ra260469/MC613/projeto/labiritno.mem", mem);
-initial $readmemb("/home/ec2022/ra260469/MC613/projeto/mini_mapa.mem", mini_mapa);
+reg [3:0] mini_mapa_og [0:1199];
+reg morreu = 1;
 
 reg [7:0] cor;
 reg [9:0] coluna = 0;
@@ -101,11 +106,18 @@ reg [15:0] bola = {1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 1
 reg [15:0] super_bola = {1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b1, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0};
 
 reg [1:0] fantasma [0:15];
+integer i;
 initial begin 
+	$readmemb("/home/ec2022/ra260469/MC613/projeto/labiritno.mem", mem);
+	$readmemb("/home/ec2022/ra260469/MC613/projeto/mini_mapa.mem", mini_mapa_og);
+	
 	fantasma[0] = 2'b00; fantasma[1] = 2'b01; fantasma[2] = 2'b01; fantasma[3] = 2'b00;
 	fantasma[4] = 2'b01; fantasma[5] = 2'b01; fantasma[6] = 2'b01; fantasma[7] = 2'b01;
 	fantasma[8] = 2'b10; fantasma[9] = 2'b01; fantasma[10] = 2'b01; fantasma[11] = 2'b10;
 	fantasma[12] = 2'b01; fantasma[13] = 2'b00; fantasma[14] = 2'b00; fantasma[15] = 2'b01;
+	for(i = 0; i < 1200; i = i + 1) begin
+		mini_mapa[i] <= mini_mapa_og[i];
+	end
 end
 
 reg [15:0] pac_man;
@@ -200,134 +212,14 @@ end
 
 
 // ------------------------ mover os fantasmas ---------------------
-//function [6:0] distance (input [11:0] x_f, y_f, x_p, y_p);
-////	wire [5:0] x_d = (x_p - x_f) > 0 ? (x_p - x_f) : (x_f - x_p);
-////	wire [5:0] y_d = (y_p - y_f) > 0 ? (y_p - y_f) : (y_f - y_p);
-//	begin
-//	distance = ((x_p - x_f) > 0 ? (x_p - x_f) : (x_f - x_p)) + ((y_p - y_f) > 0 ? (y_p - y_f) : (y_f - y_p));
-//	end
-//endfunction
-
 reg signed [11:0] red_x = 20;
 reg signed [9:0] red_y = 11;
 reg signed [1:0] rvx = 0, rvy = 0;
-wire d_av = mini_mapa[red_x + 1 + (red_y * 40)] != 4'b0001 ? 1:0;
-wire e_av = mini_mapa[red_x - 1 + (red_y * 40)] != 4'b0001 ? 1:0;
-wire c_av = mini_mapa[red_x + ((red_y - 1) * 40)] != 4'b0001 ? 1:0;
-wire b_av = mini_mapa[red_x + ((red_y + 1) * 40)] != 4'b0001 ? 1:0;
-//wire [5:0] x_dist = (pac_x - red_x) > 0 ? (pac_x - red_x) : (red_x - pac_x);
-//wire [4:0] y_dist = (pac_y - red_y) > 0 ? (pac_y - red_y) : (red_y - pac_y);
-//reg [6:0] dist;
-
-//always @(posedge ghost_clk) begin
-////	dist = distance(red_x, red_y, pac_x, pac_y);
-////	if(d_av && (distance(red_x + 1, red_y, pac_x, pac_y) < dist)) begin
-////		dist = distance(red_x + 1, red_y, pac_x, pac_y);
-////		rvx = 1; rvy = 0;
-////	end
-////	else if(e_av && (distance(red_x - 1, red_y, pac_x, pac_y) < dist)) begin
-////		dist = distance(red_x - 1, red_y, pac_x, pac_y);
-////		rvx = -1; rvy = 0;
-////	end if(c_av && (distance(red_x, red_y - 1, pac_x, pac_y) < dist)) begin
-////		dist = distance(red_x, red_y - 1, pac_x, pac_y);
-////		rvx = 0; rvy = -1;
-////	end if(b_av && (distance(red_x, red_y + 1, pac_x, pac_y) < dist)) begin
-////		dist = distance(red_x, red_y + 1, pac_x, pac_y);
-////		rvx = 0; rvy = 1;
-////	end
-//	if((rvy != 1) && c_av && (pac_y < red_y)) begin
-//		rvx = 0; rvy = -1;
-//	end else if((rvx != 1) && e_av && (pac_x < red_x)) begin
-//		rvx = -1; rvy = 0;
-//	end else if((rvy != -1) && b_av && (pac_y > red_y)) begin
-//		rvx = 0; rvy = 1;
-//	end else if((rvx != -1) && d_av && (pac_x > red_x)) begin
-//		rvx = 1; rvy = 0;
-//	end
-//	else begin
-//		if ((rvy != 1) && c_av) begin rvx = 0; rvy = -1;end
-//		else if ((rvx != 1) && e_av) begin rvx = -1; rvy = 0;end
-//		else if ((rvy != -1) && b_av) begin rvx = 0; rvy = 1;end
-//		else if ((rvx != -1) && d_av) begin rvx = 1; rvy = 0;end
-//	end
-////	
-////	
-////	if (rvy == -1) begin
-////		if (c_av) begin rvx <= 0; rvy <= -1;end
-////		else if (e_av) begin rvx <= -1; rvy <= 0;end
-////		else if (d_av) begin rvx <= 1; rvy <= 0;end
-////	end else if (rvx == -1) begin
-////		if (c_av) begin rvx <= 0; rvy <= -1;end
-////		else if (e_av) begin rvx <= -1; rvy <= 0;end
-////		else if (b_av) begin rvx <= 0; rvy <= 1;end
-////	end else if (rvy == 1) begin
-////		if (e_av) begin rvx <= -1; rvy <= 0;end
-////		else if (b_av) begin rvx <= 0; rvy <= 1;end
-////		else if (d_av) begin rvx <= 1; rvy <= 0;end
-////	end else if (rvx == 1) begin
-////		if (c_av) begin rvx <= 0; rvy <= -1;end
-////		else if (b_av) begin rvx <= 0; rvy <= 1;end
-////		else if (d_av) begin rvx <= 1; rvy <= 0;end
-////	
-////	end
-////	end
-//	
-////	if (rvy == -1 && ~c_av) begin
-////			if (e_av) begin rvx <= -1; rvy <= 0;end
-////			else if (d_av) begin rvx <= 1; rvy <= 0;end
-////	end else if (rvy == 1 && ~b_av) begin
-////			if (e_av) begin rvx <= -1; rvy <= 0;end
-////			else if (d_av) begin rvx <= 1; rvy <= 0;end
-////
-////	end else if (rvx == -1 && ~e_av) begin
-////			if (c_av) begin rvx <= 0; rvy <= -1;end
-////			else if (b_av) begin rvx <= 0; rvy <= 1;end
-////	end else if (rvx == 1 && ~d_av) begin
-////			if (c_av) begin rvx <= 0; rvy <= -1;end
-////			else if (b_av) begin rvx <= 0; rvy <= 1;end
-//////	mini_mapa[red_x + (red_y * 40)] = 0;
-//////	red_x = red_x + rvx; red_y = red_y + rvy;
-//////	mini_mapa[red_x + (red_y * 40)] = 7;
-////	
-////	end
-////	end
-//	
-//
-////	if((rvy != 1) && c_av) begin
-////		if ((pac_y < red_y))begin
-////		rvx = 0; rvy = -1;end
-////		else begin 
-////		if (e_av) begin rvx <= -1; rvy <= 0;end
-////		else if (d_av) begin rvx <= 1; rvy <= 0;end 
-////		end
-////	end else if ((rvx != 1) && e_av) begin 
-////		if ((pac_x < red_x)) begin
-////		rvx = -1; rvy = 0;end
-////		else begin
-////		if (c_av) begin rvx <= 0; rvy <= -1;end
-////		else if (b_av) begin rvx <= 0; rvy <= 1;end;
-////		end
-////	end else if((rvy != -1) && b_av) begin 
-////		if ((pac_y > red_y)) begin
-////		rvx = 0; rvy = 1; end
-////		else begin 
-////		if (e_av) begin rvx <= -1; rvy <= 0;end
-////		else if (d_av) begin rvx <= 1; rvy <= 0;end 
-////		end
-////	end else if ((rvx != -1) && d_av ) begin
-////		if ((pac_x > red_x)) begin
-////		rvx = 1; rvy = 0;end
-////		else begin
-////		if (c_av) begin rvx <= 0; rvy <= -1;end
-////		else if (b_av) begin rvx <= 0; rvy <= 1;end;
-////		end
-////	end
-////	end
-//
-//
-
-//	end
-
+wire rd_av = mini_mapa[red_x + 1 + (red_y * 40)] != 4'b0001 ? 1:0;
+wire re_av = mini_mapa[red_x - 1 + (red_y * 40)] != 4'b0001 ? 1:0;
+wire rc_av = mini_mapa[red_x + ((red_y - 1) * 40)] != 4'b0001 ? 1:0;
+wire rb_av = mini_mapa[red_x + ((red_y + 1) * 40)] != 4'b0001 ? 1:0;
+reg [3:0] antes_r = 4'b0000;
 
 
 // ------------------------- mover o pacman ------------------------
@@ -337,9 +229,11 @@ reg signed [1:0] vx = 0, fvx = 0;
 reg signed [1:0] vy = 0, fvy = 0;
 reg [3:0] state = 0;
 reg waka = 0;
-reg [3:0] antes_f = 4'b0000;
 
 always @(negedge game_clk) begin
+	if(!reset || !morreu) begin
+		vx = 0; vy = 0; fvx = 0; fvy = 0;
+	end else begin
 	vx = fvx; vy = fvy;
 	case (state)
 	0: begin
@@ -354,7 +248,7 @@ always @(negedge game_clk) begin
 			vx = 1; vy = 0;
 			fvx = 1; fvy = 0;
 		end else if(mini_mapa[pac_x + vx + 1 + ((pac_y + vy) * 40)] != 1) begin
-			fvx = 1; vy = 0;
+			fvx = 1; fvy = 0;
 		end
 		state = 0;
 		end
@@ -391,44 +285,62 @@ always @(negedge game_clk) begin
 		
 endcase
 end
+end
 
-
+ 
 // ---------------------------- passar os elementos moveis pro minimapa ----------------------------
 always @(posedge game_clk) begin
-
-	if((rvy != 1) && c_av && (pac_y < red_y)) begin
+	if(!reset || !morreu) begin
+		pac_man = pac_man_idl;
+		rvx = 0; rvy = 0;
+		pac_x = 15; pac_y = 17; 
+		red_x = 20; red_y = 11;
+		antes_r = 4'b0000;
+		morreu = 1;
+		placar_atual = 0; comidas = 0;
+		for(i = 0; i < 1200; i = i + 1) begin
+			mini_mapa[i] <= mini_mapa_og[i];
+		end
+	end 
+else begin
+	if(vx == 0 && vy == 0) begin
+		rvx = 0; rvy = 0;
+	end else if((rvy != 1) && rc_av && (pac_y < red_y)) begin
 		rvx = 0; rvy = -1;
-	end else if((rvx != 1) && e_av && (pac_x < red_x)) begin
+	end else if((rvx != 1) && re_av && (pac_x < red_x)) begin
 		rvx = -1; rvy = 0;
-	end else if((rvy != -1) && b_av && (pac_y > red_y)) begin
+	end else if((rvy != -1) && rb_av && (pac_y > red_y)) begin
 		rvx = 0; rvy = 1;
-	end else if((rvx != -1) && d_av && (pac_x > red_x)) begin
+	end else if((rvx != -1) && rd_av && (pac_x > red_x)) begin
 		rvx = 1; rvy = 0;
 	end
 	else begin
-		if ((rvy != 1) && c_av) begin rvx = 0; rvy = -1;end
-		else if ((rvx != 1) && e_av) begin rvx = -1; rvy = 0;end
-		else if ((rvy != -1) && b_av) begin rvx = 0; rvy = 1;end
-		else if ((rvx != -1) && d_av) begin rvx = 1; rvy = 0;end
+		if ((rvy != 1) && rc_av) begin rvx = 0; rvy = -1;end
+		else if ((rvx != 1) && re_av) begin rvx = -1; rvy = 0;end
+		else if ((rvy != -1) && rb_av) begin rvx = 0; rvy = 1;end
+		else if ((rvx != -1) && rd_av) begin rvx = 1; rvy = 0;end
 	end
 	
 	
-	mini_mapa[red_x + (red_y * 40)] = antes_f;
-	if ((red_x + (red_y * 40) == 594) && (rvx != -1)) begin
+	mini_mapa[red_x + (red_y * 40)] = antes_r;
+	if ((red_x + (red_y * 40) == 593) && (rvx != -1)) begin
 		red_x = 5;
 		red_x = red_x + rvx; red_y = red_y + rvy;
-	end else if ((red_x + (red_y * 40) == 565) && (rvx != 1)) begin
+	end else if ((red_x + (red_y * 40) == 566) && (rvx != 1)) begin
 		red_x = 34;
 		red_x = red_x + rvx; red_y = red_y + rvy;
 	end else begin
 		red_x = red_x + rvx; red_y = red_y + rvy;
-		if (mini_mapa[red_x + (red_y * 40)] == 4'b0010) antes_f = 4'b0010;
-		else if (mini_mapa[red_x + (red_y * 40)] == 4'b0011) antes_f = 4'b0011;
-		else antes_f = 4'b0000;
+		if (mini_mapa[red_x + (red_y * 40)] == 4'b0010) antes_r = 4'b0010;
+		else if (mini_mapa[red_x + (red_y * 40)] == 4'b0011) antes_r = 4'b0011;
+		else antes_r = 4'b0000;
 	end
 	mini_mapa[red_x + (red_y * 40)] = 4'b0111;
 	
-
+	if(pac_x == red_x && pac_y == red_y) begin
+		morreu = 0;
+	end 
+	
 	waka = ~waka;
 	if(waka) pac_man = pac_man_idl;
 	else begin 
@@ -437,6 +349,13 @@ always @(posedge game_clk) begin
 		else if(vy == 1) pac_man = pac_man_cim;
 		else if(vy == -1) pac_man = pac_man_bai;
 	end
+	
+	if(mini_mapa[(pac_x + vx) + ((pac_y + vy) * 40)] == 2) begin
+		placar_atual = placar_atual + 2; comidas = comidas + 1;
+	end else if(mini_mapa[(pac_x + vx) + ((pac_y + vy) * 40)] == 3) begin
+		placar_atual = placar_atual + 40; comidas = comidas + 1;
+	end
+	maximo = placar_atual > maximo ? placar_atual : maximo;
 	
 	if(mini_mapa[pac_x + vx + ((pac_y + vy) * 40)] != 1) begin
 		mini_mapa[pac_x + (pac_y * 40)] = 0;
@@ -447,6 +366,13 @@ always @(posedge game_clk) begin
 		pac_y = pac_y + vy;
 		mini_mapa[pac_x + (pac_y * 40)] = 4;
 	end
+	end
+	
+	if(comidas == 222) begin
+		morreu = 0;
+	end else if(pac_x == red_x && pac_y == red_y) begin
+		morreu = 0;
+	end 
 end
 
 
