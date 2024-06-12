@@ -357,8 +357,8 @@ else begin
 	
 	if(pac_x == red_x && pac_y == red_y) begin
 		if(susto == -1) begin 
-			if(antes_r == 2) placar_atual = placar_atual + 2;
-			if(antes_r == 3) placar_atual = placar_atual + 40;
+			if(antes_r == 2) begin placar_atual = placar_atual + 2; comidas = comidas + 1; end
+			if(antes_r == 3) begin placar_atual = placar_atual + 40; comidas = comidas + 1; end
 			placar_atual = placar_atual + 100;
 			red_x = 20; red_y = 13;
 			antes_r = 0; rvx = 0; rvy = 0;
@@ -400,8 +400,8 @@ else begin
 		morreu = 0;
 	end else if(pac_x == red_x && pac_y == red_y) begin
 		if(susto == -1) begin 
-			if(antes_r == 2) placar_atual = placar_atual + 2;
-			if(antes_r == 3) placar_atual = placar_atual + 40;
+			if(antes_r == 2) begin placar_atual = placar_atual + 2; comidas = comidas + 1; end
+			if(antes_r == 3) begin placar_atual = placar_atual + 40; comidas = comidas + 1; end
 			placar_atual = placar_atual + 100;
 			red_x = 20; red_y = 13;
 			antes_r = 0; rvx = 0; rvy = 0;
