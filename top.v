@@ -323,7 +323,7 @@ else begin
 		rvx = 0; rvy = 0;
 	end else if(vx == 0 && vy == 0) begin
 		rvx = 0; rvy = 0;
-	end else if((rvy != 1) && rc_av && ((pac_y * susto) < (red_y * susto)) && !proibido) begin
+	end else if((rvy != 1) && rc_av && ((pac_y * susto) < (red_y * susto))) begin
 		rvx = 0; rvy = -1;
 	end else if((rvx != 1) && re_av && ((pac_x * susto) < (red_x * susto))) begin
 		rvx = -1; rvy = 0;
@@ -333,7 +333,7 @@ else begin
 		rvx = 1; rvy = 0;
 	end
 	else begin
-		if ((rvy != 1) && rc_av && !proibido) begin rvx = 0; rvy = -1; end
+		if ((rvy != 1) && rc_av) begin rvx = 0; rvy = -1; end
 		else if ((rvx != 1) && re_av) begin rvx = -1; rvy = 0; end
 		else if ((rvy != -1) && rb_av) begin rvx = 0; rvy = 1; end
 		else if ((rvx != -1) && rd_av) begin rvx = 1; rvy = 0; end
@@ -342,10 +342,10 @@ else begin
 	
 	mini_mapa[red_x + (red_y * 40)] = antes_r;
 	if ((red_x + (red_y * 40) == 593) && (rvx != -1)) begin
-		red_x = 5;
+		red_x = 6;
 		red_x = red_x + rvx; red_y = red_y + rvy;
 	end else if ((red_x + (red_y * 40) == 566) && (rvx != 1)) begin
-		red_x = 34;
+		red_x = 33;
 		red_x = red_x + rvx; red_y = red_y + rvy;
 	end else begin
 		red_x = red_x + rvx; red_y = red_y + rvy;
@@ -357,6 +357,8 @@ else begin
 	
 	if(pac_x == red_x && pac_y == red_y) begin
 		if(susto == -1) begin 
+			if(antes_r == 2) placar_atual = placar_atual + 2;
+			if(antes_r == 3) placar_atual = placar_atual + 40;
 			placar_atual = placar_atual + 100;
 			red_x = 20; red_y = 13;
 			antes_r = 0; rvx = 0; rvy = 0;
@@ -385,8 +387,8 @@ else begin
 	
 	if(mini_mapa[pac_x + vx + ((pac_y + vy) * 40)] != 1) begin
 		mini_mapa[pac_x + (pac_y * 40)] = 0;
-		if (pac_x + vx + ((pac_y + vy) * 40) == 594 && (vx == 1)) pac_x = 5;
-		if (pac_x + vx + ((pac_y + vy) * 40) == 565 && (vx == -1)) pac_x = 34;
+		if (pac_x + vx + ((pac_y + vy) * 40) == 594 && (vx == 1)) pac_x = 6;
+		if (pac_x + vx + ((pac_y + vy) * 40) == 565 && (vx == -1)) pac_x = 33;
 		
 		pac_x = pac_x + vx;
 		pac_y = pac_y + vy;
@@ -398,6 +400,8 @@ else begin
 		morreu = 0;
 	end else if(pac_x == red_x && pac_y == red_y) begin
 		if(susto == -1) begin 
+			if(antes_r == 2) placar_atual = placar_atual + 2;
+			if(antes_r == 3) placar_atual = placar_atual + 40;
 			placar_atual = placar_atual + 100;
 			red_x = 20; red_y = 13;
 			antes_r = 0; rvx = 0; rvy = 0;
